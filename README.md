@@ -1,9 +1,10 @@
 # Guide Running Operating as a Kaisar Network Provider: Empowering a Distributed Cloud Network
 
+<img width="1600" height="900" alt="Your paragraph text" src="https://github.com/user-attachments/assets/52261063-9aa9-4c35-b070-6f488f9f04c2" />
+
 Running a Kaisar Provider offers a unique opportunity to contribute to a state-of-the-art distributed cloud network that powers artificial intelligence (AI) and advanced computational workloads. Below are the key benefits of becoming a Kaisar Provider (Worker Node Operator):
 
-GAMBAR IMG
-
+---
 The Kaisar network uses a reward system to encourage participation and maintain efficient network operations. `This like a tiers provider for scoring`
 - Bandwidth scoring system = `coefisient max 0.8`
 - CPU scoring system = `coefisient max 0.8`
