@@ -1,9 +1,10 @@
 #!/bin/bash
 
-# Script untuk menginstal dan mengatur Kaisar CLI pada sistem Linux
+# Script untuk menginstal dan mengatur Kaisar Provider CLI versi 2507312203 pada sistem Linux
 # Didukung: Ubuntu 20.04, 22.04, 24.04, dan distribusi kompatibel
+# Meminta input alamat email secara interaktif untuk membuat wallet
 
-# Cari Node.js v23.10.0
+# Pastikan menggunakan Node.js v23.10.0
 NODE_PATH=$(find / -name node 2>/dev/null | grep -E "v23\.[0-9]+\.[0-9]+" | head -n 1)
 if [ -n "$NODE_PATH" ]; then
   export PATH=$(dirname "$NODE_PATH"):$PATH
@@ -94,7 +95,7 @@ install_pm2() {
     echo "pm2 sudah terinstal: $(pm2 --version)"
   else
     echo "Menginstal pm2 secara global..."
-    npm install -g pm2@5.4.2
+    npm install -g pm2@6.0.8
     echo "pm2 terinstal: $(pm2 --version)"
   fi
 }
@@ -151,6 +152,11 @@ install_npm
 install_pm2
 install_tar
 
+# Perbarui PM2 ke versi terbaru
+echo "Memperbarui PM2 ke versi 6.0.8..."
+npm install -g pm2@6.0.8
+pm2 update
+
 # Bersihkan cache npm untuk menghindari masalah dependensi
 echo "Membersihkan cache npm..."
 npm cache clean --force
@@ -160,28 +166,26 @@ echo "Versi Node.js: $(node -v)"
 echo "Versi npm: $(npm -v)"
 echo "Versi pm2: $(pm2 --version)"
 
-# Ambil informasi versi terbaru dari API Kaisar
-echo "Memeriksa versi terbaru Kaisar Provider CLI..."
-API_URL="https://app-api.kaisar.io/kavm/check-version/0?app=provider-cli&platform=linux"
-VERSION_INFO=$(curl -fsSL "$API_URL")
-DOWNLOAD_URL=$(echo "$VERSION_INFO" | grep -oP '"downloadUrl"\s*:\s*"\K[^"]+')
-LATEST_VERSION=$(echo "$VERSION_INFO" | grep -oP '"latestVersion"\s*:\s*"\K[^"]+')
+# Bersihkan proses Kaisar saja
+echo "Menghentikan proses Kaisar yang berjalan..."
+kaisar stop >/dev/null 2>&1
+pm2 stop kaisar-provider >/dev/null 2>&1
+pm2 delete kaisar-provider >/dev/null 2>&1
 
-if [ -z "$DOWNLOAD_URL" ]; then
-  echo "Error: Tidak dapat mengambil URL unduhan dari API."
-  exit 1
-fi
+# Bersihkan direktori data
+DATA_DIR="/var/lib/kaisar-provider-cli"
+echo "Membersihkan direktori data: $DATA_DIR..."
+sudo rm -rf "$DATA_DIR"/*
+sudo mkdir -p "$DATA_DIR"
+sudo chown $USER:$USER "$DATA_DIR"
+sudo chmod 755 "$DATA_DIR"
 
 # Siapkan direktori instalasi
-INSTALL_DIR="/opt/kaisar-provider-cli-$LATEST_VERSION"
+INSTALL_DIR="/opt/kaisar-provider-cli-2507312203"
+DOWNLOAD_URL="https://github.com/Kaisar-Network/kaisar-releases/raw/main/kaisar-provider-cli-2507312203.tar.gz"
+sudo rm -rf "$INSTALL_DIR"
 mkdir -p "$INSTALL_DIR"
 cd "$INSTALL_DIR"
-
-# Buat direktori data dengan izin yang lebih aman
-DATA_DIR="/var/lib/kaisar-provider-cli"
-mkdir -p "$DATA_DIR"
-chown $USER:$USER "$DATA_DIR"
-chmod 755 "$DATA_DIR"
 
 # Unduh dan ekstrak paket rilis
 echo "Mengunduh paket Kaisar Provider CLI dari $DOWNLOAD_URL..."
@@ -198,7 +202,6 @@ rm kaisar-provider-cli.tar.gz
 if [ -f package.json ]; then
   echo "Menginstal dependensi..."
   npm install
-  # Pastikan commander dan ethers versi kompatibel
   npm install commander@9.5.0 ethers@5.7.2
 else
   echo "Error: package.json tidak ditemukan di paket yang diekstrak."
@@ -235,16 +238,55 @@ kaisar --version || {
   exit 1
 }
 
+# Mulai aplikasi
+echo "Memulai aplikasi Kaisar..."
+kaisar start || {
+  echo "Error: Gagal memulai aplikasi. Periksa log dengan: kaisar logs"
+  exit 1
+}
+
+# Tunggu beberapa detik untuk memastikan aplikasi berjalan
+sleep 5
+
+# Periksa status
+echo "Memeriksa status aplikasi..."
+kaisar status || {
+  echo "Error: Aplikasi tidak berjalan. Periksa log dengan: kaisar logs"
+  exit 1
+}
+
+# Meminta input alamat email untuk wallet
+echo "Masukkan alamat email untuk membuat wallet baru:"
+read -p "Email: " EMAIL
+if [ -z "$EMAIL" ]; then
+  echo "Error: Alamat email tidak boleh kosong."
+  exit 1
+fi
+
+# Buat wallet
+echo "Membuat wallet baru dengan email $EMAIL..."
+kaisar create-wallet -e "$EMAIL" || {
+  echo "Error: Gagal membuat wallet. Periksa log dengan: kaisar logs"
+  exit 1
+}
+
+# Periksa file wallet
+echo "Memeriksa file wallet..."
+ls -l "$DATA_DIR" | grep wallet || {
+  echo "Error: File wallet tidak ditemukan di $DATA_DIR. Periksa log dengan: kaisar logs"
+  exit 1
+}
+
+# Simpan konfigurasi PM2
+echo "Menyimpan konfigurasi PM2..."
+pm2 save
+
 echo "--------------------------------------------------"
-echo "Instalasi berhasil! Anda sekarang dapat menggunakan CLI dengan perintah 'kaisar'."
-echo "Langkah selanjutnya:"
-echo "  1. Buat wallet: kaisar create-wallet -e your-email@example.com"
-echo "  1.1 Jika error import aja: kaisar import-wallet -e your-email@example.com -k your private key"
-echo "  2. Mulai aplikasi: kaisar start"
-echo "  3. Periksa status: kaisar status"
-echo "  4. Lihat log: kaisar logs"
-echo ""
+echo "Instalasi dan konfigurasi berhasil!"
+echo "Aplikasi telah dimulai dan wallet telah dibuat."
+echo "Periksa status: kaisar status"
+echo "Lihat log: kaisar logs"
+echo "Cek status provider di https://onenode.kaisar.io/provider menggunakan alamat wallet."
 echo "Catatan: Anda mungkin perlu me-restart terminal atau menjalankan:"
 echo "      source ~/.bashrc"
-echo "untuk membuat perintah 'kaisar' tersedia segera"
 echo "--------------------------------------------------"
