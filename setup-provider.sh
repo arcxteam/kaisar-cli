@@ -1,66 +1,88 @@
 #!/bin/bash
 
-# Script to install and set up the Kaisar CLI on Linux systems
-# Supported: Ubuntu 20.04, 22.04, 24.04, and compatible distributions
+# Script untuk menginstal dan mengatur Kaisar CLI pada sistem Linux
+# Didukung: Ubuntu 20.04, 22.04, 24.04, dan distribusi kompatibel
 
-# Check for root privileges
+# Memastikan penggunaan Node.js versi yang benar
+echo "Menggunakan Node.js: $(node -v)"
+echo "Lokasi Node.js: $(which node)"
+
+# Memeriksa hak akses root
 if [ "$EUID" -ne 0 ]; then
-  echo "Please run this script with sudo: sudo ./kaisar-provider-setup.sh"
+  echo "Harap jalankan script ini dengan sudo: sudo ./setup-provider.sh"
   exit 1
 fi
 
-# Fix repository issues for Ubuntu-based systems
+# Memperbaiki URL repositori untuk sistem berbasis Ubuntu
 fix_repositories() {
   if grep -q 'id.archive.ubuntu.com' /etc/apt/sources.list; then
-    echo "Fixing repository URLs..."
+    echo "Memperbaiki URL repositori..."
     sed -i 's|id.archive.ubuntu.com|archive.ubuntu.com|g' /etc/apt/sources.list
     sed -i 's|http://archive.ubuntu.com|https://archive.ubuntu.com|g' /etc/apt/sources.list
     sed -i 's|http://security.ubuntu.com|https://security.ubuntu.com|g' /etc/apt/sources.list
   fi
 }
 
-# Check and install Node.js if not present
+# Memeriksa dan menginstal Node.js jika belum ada
 install_nodejs() {
   if command -v node >/dev/null 2>&1; then
-    echo "Node.js is already installed: $(node -v)"
+    echo "Node.js sudah terinstal: $(node -v)"
+    if [ "$(node -v | cut -d. -f1)" != "v23" ]; then
+      echo "Versi Node.js tidak sesuai (harus v23.x). Memperbarui ke v23.10.0..."
+      if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        case $ID in
+          ubuntu|debian)
+            fix_repositories
+            curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+            apt-get update
+            apt-get install -y nodejs
+            ;;
+          centos|rhel|fedora|rocky|almalinux)
+            curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+            yum install -y nodejs
+            ;;
+          *)
+            echo "Distribusi Linux tidak didukung. Instal Node.js v23 secara manual."
+            exit 1
+            ;;
+        esac
+      fi
+    fi
   else
-    echo "Installing Node.js..."
-    
-    # Identify distribution
+    echo "Menginstal Node.js v23.10.0..."
     if [ -f /etc/os-release ]; then
       . /etc/os-release
       case $ID in
         ubuntu|debian)
           fix_repositories
-          curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+          curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
           apt-get update
           apt-get install -y nodejs
           ;;
         centos|rhel|fedora|rocky|almalinux)
-          curl -fsSL https://rpm.nodesource.com/setup_lts.x | bash -
+          curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
           yum install -y nodejs
           ;;
         *)
-          echo "Unsupported Linux distribution. Please install Node.js manually."
+          echo "Distribusi Linux tidak didukung. Instal Node.js secara manual."
           exit 1
           ;;
       esac
     else
-      echo "Unsupported Linux distribution. Please install Node.js manually."
+      echo "Distribusi Linux tidak didukung. Instal Node.js secara manual."
       exit 1
     fi
-    
-    echo "Node.js installed: $(node -v)"
+    echo "Node.js terinstal: $(node -v)"
   fi
 }
 
-# Check and install npm if not present
+# Memeriksa dan menginstal npm jika belum ada
 install_npm() {
   if command -v npm >/dev/null 2>&1; then
-    echo "npm is already installed: $(npm -v)"
+    echo "npm sudah terinstal: $(npm -v)"
   else
-    echo "Installing npm..."
-    
+    echo "Menginstal npm..."
     if [ -f /etc/os-release ]; then
       . /etc/os-release
       case $ID in
@@ -71,34 +93,32 @@ install_npm() {
           yum install -y npm
           ;;
         *)
-          echo "Unsupported Linux distribution. Please install npm manually."
+          echo "Distribusi Linux tidak didukung. Instal npm secara manual."
           exit 1
           ;;
       esac
     fi
-    
-    echo "npm installed: $(npm -v)"
+    echo "npm terinstal: $(npm -v)"
   fi
 }
 
-# Check and install pm2 if not present
+# Memeriksa dan menginstal pm2 jika belum ada
 install_pm2() {
   if npm list -g pm2 >/dev/null 2>&1; then
-    echo "pm2 is already installed: $(pm2 --version)"
+    echo "pm2 sudah terinstal: $(pm2 --version)"
   else
-    echo "Installing pm2 globally..."
+    echo "Menginstal pm2 secara global..."
     npm install -g pm2
-    echo "pm2 installed: $(pm2 --version)"
+    echo "pm2 terinstal: $(pm2 --version)"
   fi
 }
 
-# Check and install curl if not present
+# Memeriksa dan menginstal curl jika belum ada
 install_curl() {
   if command -v curl >/dev/null 2>&1; then
-    echo "curl is already installed"
+    echo "curl sudah terinstal"
   else
-    echo "Installing curl..."
-    
+    echo "Menginstal curl..."
     if [ -f /etc/os-release ]; then
       . /etc/os-release
       case $ID in
@@ -110,7 +130,7 @@ install_curl() {
           yum install -y curl
           ;;
         *)
-          echo "Unsupported Linux distribution. Please install curl manually."
+          echo "Distribusi Linux tidak didukung. Instal curl secara manual."
           exit 1
           ;;
       esac
@@ -118,13 +138,12 @@ install_curl() {
   fi
 }
 
-# Check and install tar if not present
+# Memeriksa dan menginstal tar jika belum ada
 install_tar() {
   if command -v tar >/dev/null 2>&1; then
-    echo "tar is already installed"
+    echo "tar sudah terinstal"
   else
-    echo "Installing tar..."
-    
+    echo "Menginstal tar..."
     if [ -f /etc/os-release ]; then
       . /etc/os-release
       case $ID in
@@ -139,98 +158,108 @@ install_tar() {
   fi
 }
 
-# Main installation process
+# Proses instalasi utama
 install_curl
 install_nodejs
 install_npm
 install_pm2
 install_tar
 
-# Show versions
-echo "Node.js version: $(node -v)"
-echo "npm version: $(npm -v)"
-echo "pm2 version: $(pm2 --version)"
+# Bersihkan cache npm untuk menghindari masalah dependensi
+echo "Membersihkan cache npm..."
+npm cache clean --force
 
-# Get latest version info from Kaisar API
-echo "Checking latest Kaisar Provider CLI version..."
+# Tampilkan versi
+echo "Versi Node.js: $(node -v)"
+echo "Versi npm: $(npm -v)"
+echo "Versi pm2: $(pm2 --version)"
+
+# Ambil informasi versi terbaru dari API Kaisar
+echo "Memeriksa versi terbaru Kaisar Provider CLI..."
 API_URL="https://app-api.kaisar.io/kavm/check-version/0?app=provider-cli&platform=linux"
 VERSION_INFO=$(curl -fsSL "$API_URL")
 DOWNLOAD_URL=$(echo "$VERSION_INFO" | grep -oP '"downloadUrl"\s*:\s*"\K[^"]+')
 LATEST_VERSION=$(echo "$VERSION_INFO" | grep -oP '"latestVersion"\s*:\s*"\K[^"]+')
 
 if [ -z "$DOWNLOAD_URL" ]; then
-  echo "Error: Could not fetch download URL from API."
+  echo "Error: Tidak dapat mengambil URL unduhan dari API."
   exit 1
 fi
 
-# Prepare install directory
+# Siapkan direktori instalasi
 INSTALL_DIR="/opt/kaisar-provider-cli-$LATEST_VERSION"
 mkdir -p "$INSTALL_DIR"
 cd "$INSTALL_DIR"
 
-# Create data directory with proper permissions
+# Buat direktori data dengan izin yang lebih aman
 DATA_DIR="/var/lib/kaisar-provider-cli"
-sudo mkdir -p "$DATA_DIR"
-sudo chmod 777 "$DATA_DIR"
+mkdir -p "$DATA_DIR"
+chown $USER:$USER "$DATA_DIR"
+chmod 755 "$DATA_DIR"
 
-# Download and extract the release package
-echo "Downloading Kaisar Provider CLI package from $DOWNLOAD_URL..."
+# Unduh dan ekstrak paket rilis
+echo "Mengunduh paket Kaisar Provider CLI dari $DOWNLOAD_URL..."
 curl -fL "$DOWNLOAD_URL" -o kaisar-provider-cli.tar.gz || {
-  echo "Error: Unable to download package."
+  echo "Error: Tidak dapat mengunduh paket."
   exit 1
 }
 
-echo "Extracting package..."
+echo "Mengekstrak paket..."
 tar -xzf kaisar-provider-cli.tar.gz
 rm kaisar-provider-cli.tar.gz
 
-# Install dependencies
+# Instal dependensi
 if [ -f package.json ]; then
-  echo "Installing dependencies..."
-  npm install --production
+  echo "Menginstal dependensi..."
+  npm install
+  # Pastikan ethers terinstal
+  if ! npm list ethers >/dev/null 2>&1; then
+    echo "Menginstal ethers secara eksplisit..."
+    npm install ethers
+  fi
 else
-  echo "Error: package.json not found in extracted package."
+  echo "Error: package.json tidak ditemukan di paket yang diekstrak."
   exit 1
 fi
 
-# Link CLI globally
-echo "Linking CLI globally..."
+# Tautkan CLI secara global
+echo "Menautkan CLI secara global..."
 npm link || {
-  echo "Error: Unable to link CLI globally. Please check your npm permissions."
+  echo "Error: Tidak dapat menautkan CLI secara global. Periksa izin npm Anda."
   exit 1
 }
 
-# Add environment variable to profile
-echo "Setting up environment variables..."
+# Tambahkan variabel lingkungan ke file profil
+echo "Mengatur variabel lingkungan..."
 ENV_SETUP="export KAISAR_DATA_DIR=\"$DATA_DIR\""
 
-# Add to profile files
+# Tambahkan ke file profil
 for profile_file in /etc/profile /etc/bash.bashrc /etc/bashrc ~/.bashrc ~/.bash_profile ~/.profile; do
   if [ -f "$profile_file" ]; then
     if ! grep -q "KAISAR_DATA_DIR" "$profile_file"; then
       echo "$ENV_SETUP" >> "$profile_file"
-      echo "Added to $profile_file"
+      echo "Ditambahkan ke $profile_file"
     fi
   fi
 done
 
-# Verify installation
-echo "Verifying installation..."
+# Verifikasi instalasi
+echo "Memverifikasi instalasi..."
 export KAISAR_DATA_DIR="$DATA_DIR"
 kaisar --version || {
-  echo "Error: Installation verification failed. The 'kaisar' command might not be available until you restart your terminal."
-  echo "However, the installation might have completed. Try restarting the terminal and then run: kaisar --version"
+  echo "Error: Verifikasi instalasi gagal. Perintah 'kaisar' mungkin belum tersedia sampai Anda me-restart terminal."
+  echo "Namun, instalasi mungkin telah selesai. Coba restart terminal dan jalankan: kaisar --version"
   exit 1
 }
 
 echo "--------------------------------------------------"
-echo "Installation successful! You can now use the CLI with the 'kaisar' command."
-echo "Example commands:"
-echo "  kaisar start   # Start the Provider Application"
-echo "  kaisar status  # Check the status of the Provider Application"
-echo "  kaisar logs    # View application logs"
+echo "Instalasi berhasil! Anda sekarang dapat menggunakan CLI dengan perintah 'kaisar'."
+echo "Contoh perintah:"
+echo "  kaisar start   # Memulai Aplikasi Provider"
+echo "  kaisar status  # Memeriksa status Aplikasi Provider"
+echo "  kaisar logs    # Melihat log aplikasi"
 echo ""
-echo "Note: You might need to restart your terminal or run:"
+echo "Catatan: Anda mungkin perlu me-restart terminal atau menjalankan:"
 echo "      source ~/.bashrc"
-echo "to make the 'kaisar' command available immediately"
+echo "untuk membuat perintah 'kaisar' tersedia segera"
 echo "--------------------------------------------------"
