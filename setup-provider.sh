@@ -3,7 +3,11 @@
 # Script untuk menginstal dan mengatur Kaisar CLI pada sistem Linux
 # Didukung: Ubuntu 20.04, 22.04, 24.04, dan distribusi kompatibel
 
-# Memastikan penggunaan Node.js versi yang benar
+# Cari Node.js v23.10.0
+NODE_PATH=$(find / -name node 2>/dev/null | grep -E "v23\.[0-9]+\.[0-9]+" | head -n 1)
+if [ -n "$NODE_PATH" ]; then
+  export PATH=$(dirname "$NODE_PATH"):$PATH
+fi
 echo "Menggunakan Node.js: $(node -v)"
 echo "Lokasi Node.js: $(which node)"
 
@@ -23,34 +27,16 @@ fix_repositories() {
   fi
 }
 
-# Memeriksa dan menginstal Node.js jika belum ada
+# Memeriksa dan menginstal Node.js v23.10.0
 install_nodejs() {
-  if command -v node >/dev/null 2>&1; then
-    echo "Node.js sudah terinstal: $(node -v)"
-    if [ "$(node -v | cut -d. -f1)" != "v23" ]; then
-      echo "Versi Node.js tidak sesuai (harus v23.x). Memperbarui ke v23.10.0..."
-      if [ -f /etc/os-release ]; then
-        . /etc/os-release
-        case $ID in
-          ubuntu|debian)
-            fix_repositories
-            curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-            apt-get update
-            apt-get install -y nodejs
-            ;;
-          centos|rhel|fedora|rocky|almalinux)
-            curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
-            yum install -y nodejs
-            ;;
-          *)
-            echo "Distribusi Linux tidak didukung. Instal Node.js v23 secara manual."
-            exit 1
-            ;;
-        esac
-      fi
-    fi
+  if command -v node >/dev/null 2>&1 && [[ "$(node -v)" == v23.* ]]; then
+    echo "Node.js v23 sudah terinstal: $(node -v)"
   else
-    echo "Menginstal Node.js v23.10.0..."
+    echo "Menghapus versi Node.js lama dan dependensinya..."
+    apt-get remove --purge -y nodejs libnode-dev npm
+    apt-get autoremove -y
+    apt-get autoclean
+    echo "Menginstal Node.js v20.x sebagai cadangan..."
     if [ -f /etc/os-release ]; then
       . /etc/os-release
       case $ID in
@@ -65,7 +51,7 @@ install_nodejs() {
           yum install -y nodejs
           ;;
         *)
-          echo "Distribusi Linux tidak didukung. Instal Node.js secara manual."
+          echo "Distribusi Linux tidak didukung. Instal Node.js v23 secara manual."
           exit 1
           ;;
       esac
@@ -108,7 +94,7 @@ install_pm2() {
     echo "pm2 sudah terinstal: $(pm2 --version)"
   else
     echo "Menginstal pm2 secara global..."
-    npm install -g pm2
+    npm install -g pm2@5.4.2
     echo "pm2 terinstal: $(pm2 --version)"
   fi
 }
@@ -212,11 +198,8 @@ rm kaisar-provider-cli.tar.gz
 if [ -f package.json ]; then
   echo "Menginstal dependensi..."
   npm install
-  # Pastikan ethers terinstal
-  if ! npm list ethers >/dev/null 2>&1; then
-    echo "Menginstal ethers secara eksplisit..."
-    npm install ethers
-  fi
+  # Pastikan commander dan ethers versi kompatibel
+  npm install commander@9.5.0 ethers@5.7.2
 else
   echo "Error: package.json tidak ditemukan di paket yang diekstrak."
   exit 1
@@ -254,10 +237,12 @@ kaisar --version || {
 
 echo "--------------------------------------------------"
 echo "Instalasi berhasil! Anda sekarang dapat menggunakan CLI dengan perintah 'kaisar'."
-echo "Contoh perintah:"
-echo "  kaisar start   # Memulai Aplikasi Provider"
-echo "  kaisar status  # Memeriksa status Aplikasi Provider"
-echo "  kaisar logs    # Melihat log aplikasi"
+echo "Langkah selanjutnya:"
+echo "  1. Buat wallet: kaisar create-wallet -e your-email@example.com"
+echo "  1.1 Jika error import aja: kaisar import-wallet -e your-email@example.com -k your private key"
+echo "  2. Mulai aplikasi: kaisar start"
+echo "  3. Periksa status: kaisar status"
+echo "  4. Lihat log: kaisar logs"
 echo ""
 echo "Catatan: Anda mungkin perlu me-restart terminal atau menjalankan:"
 echo "      source ~/.bashrc"
