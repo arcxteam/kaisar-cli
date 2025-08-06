@@ -41,16 +41,16 @@ The Kaisar network uses a reward system to encourage participation and maintain 
 git clone https://github.com/arcxteam/kaisar-cli).git
 cd kaisar-cli
 ```
-### b. Run Script Install
+### b. Run Install
 ```
 chmod +x setup-provider.sh && sudo ./setup-provider.sh
 ```
-### c. After installation, verify by running
+### c. After installation, verify status & version
 ```
-$HOME cd && kaisar
+kaisar
 ```
 - If you see a welcome message like pict below, the installation was successful!
-- Save wallet address + private key
+- Save wallet address + private key above
 - Import wallet to Metamask, Okx, Talisman, Rabby or other Web3 wallet
 - Go to dashboard to connect
 
