@@ -41,7 +41,7 @@ The Kaisar network uses a reward system to encourage participation and maintain 
 git clone https://github.com/arcxteam/kaisar-cli).git
 cd kaisar-cli
 ```
-### b. Run Script Executable
+### b. Run Script Install
 ```
 chmod +x setup-provider.sh && sudo ./setup-provider.sh
 ```
@@ -49,11 +49,17 @@ chmod +x setup-provider.sh && sudo ./setup-provider.sh
 ```
 $HOME cd && kaisar
 ```
-`If you see a welcome message like pict below, the installation was successful!`
+- If you see a welcome message like pict below, the installation was successful!
+- Save wallet address + private key
+- Import wallet to Metamask, Okx, Talisman, Rabby or other Web3 wallet
+- Go to dashboard to connect
 
-### d. You can now join the network
+### d. Run Executable - You can now join the network
+```
+kaisar start
+```
 
-## 4. Update CLI version & Usefull Command Logs
+## 4. Update Usefull Command Logs
 
 ```diff
 > this command go to help
@@ -66,7 +72,8 @@ $HOME cd && kaisar
 - kaisar log                                      # Check details log of Provider App
 - pm2 logs kaisar-provider                        # Other logs on pm2 background
 
-+ Wallet and configuration data are stored in
++ Wallet private key & configuration data are stored in this folder
 
 - sudo ls -la /var/lib/kaisar-provider-cli
+- cd /var/lib/kaisar-provider-cli
 ```
