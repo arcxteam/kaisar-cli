@@ -15,7 +15,7 @@ The Kaisar network uses a reward system to encourage participation and maintain 
 - Memory scoring system = `coefisient max 0.8`
 - GPU scoring system = `coefisient max 10.0`
 
-[Read detail Rewards for Kaisar Providers](https://greyscope.xyz/x/docs-kaisar)
+[Read detail Rewards for Kaisar Providers](https://greyscope.xyz/x/docskaisar)
 
 ## 1. Preparation Kaisar CLI Node
 **1. Hardware requirements** 
@@ -58,19 +58,20 @@ kaisar
 ```
 kaisar start
 ```
+<img width="877" height="549" alt="image" src="https://github.com/user-attachments/assets/f0466ed5-ea0c-4b2b-8496-8e9b70001aea" />
 
 ## 4. Update Usefull Command Logs
 
 ```diff
 > this command go to help
 
-- kaisar start                                    # Start the Provider App
-- kaisar stop                                     # Stop the Provider App
-- kaisar create-wallet -e <your email>            # Create Wallet
-- kaisar import-wallet -e <your email> -k <your private key>      # Import your existed wallet
-- kaisar status                                   # Check node status
-- kaisar log                                      # Check details log of Provider App
-- pm2 logs kaisar-provider                        # Other logs on pm2 background
+- kaisar start
+- kaisar stop
+- kaisar create-wallet -e your@email
+- kaisar import-wallet -e your@email -k private-key
+- kaisar status
+- kaisar log
+- pm2 logs kaisar-provider # optional check logs
 
 + Wallet private key & configuration data are stored in this folder
 
