@@ -1,10 +1,6 @@
 #!/bin/bash
 
-# Script untuk menginstal dan mengatur Kaisar Provider CLI versi 2507312203 pada sistem Linux
-# Didukung: Ubuntu 20.04, 22.04, 24.04, dan distribusi kompatibel
-# Meminta input alamat email secara interaktif untuk membuat wallet
-
-# Pastikan menggunakan Node.js v23.10.0
+# Pastikan menggunakan Node.js v20 keatas bang
 NODE_PATH=$(find / -name node 2>/dev/null | grep -E "v23\.[0-9]+\.[0-9]+" | head -n 1)
 if [ -n "$NODE_PATH" ]; then
   export PATH=$(dirname "$NODE_PATH"):$PATH
@@ -18,7 +14,6 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-# Memperbaiki URL repositori untuk sistem berbasis Ubuntu
 fix_repositories() {
   if grep -q 'id.archive.ubuntu.com' /etc/apt/sources.list; then
     echo "Memperbaiki URL repositori..."
@@ -28,7 +23,7 @@ fix_repositories() {
   fi
 }
 
-# Memeriksa dan menginstal Node.js v23.10.0
+# Memeriksa dan menginstal Node.js
 install_nodejs() {
   if command -v node >/dev/null 2>&1 && [[ "$(node -v)" == v23.* ]]; then
     echo "Node.js v23 sudah terinstal: $(node -v)"
@@ -166,7 +161,7 @@ echo "Versi Node.js: $(node -v)"
 echo "Versi npm: $(npm -v)"
 echo "Versi pm2: $(pm2 --version)"
 
-# Bersihkan proses Kaisar saja
+# Bersihkan proses Kaisar
 echo "Menghentikan proses Kaisar yang berjalan..."
 kaisar stop >/dev/null 2>&1
 pm2 stop kaisar-provider >/dev/null 2>&1
@@ -287,6 +282,6 @@ echo "Aplikasi telah dimulai dan wallet telah dibuat."
 echo "Periksa status: kaisar status"
 echo "Lihat log: kaisar logs"
 echo "Cek status provider di https://onenode.kaisar.io/provider menggunakan alamat wallet."
-echo "Catatan: Anda mungkin perlu me-restart terminal atau menjalankan:"
+echo "Catatan: jika error jalankan ini dan instal ualng:"
 echo "      source ~/.bashrc"
 echo "--------------------------------------------------"
