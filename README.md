@@ -1,4 +1,4 @@
-# Guide Running Operating as a Kaisar Network Provider: Empowering a Distributed Cloud Network
+# Guide Running Operating as Kaisar Network Provider: Empowering a Distributed Cloud Network
 
 <img width="1600" height="900" alt="Your paragraph text" src="https://github.com/user-attachments/assets/52261063-9aa9-4c35-b070-6f488f9f04c2" />
 
@@ -32,16 +32,17 @@ The Kaisar network uses a reward system to encourage participation and maintain 
 ## 2. Dashboard Run & Uptime
 
 1. Go to dashboard connect account or wait until generate new wallet CLI [Kaisar Provider](https://greyscope.xyz/x/dashboard)
-2. 
+2. Need email for binding
+3. Running Kaisar Extention? its different but you can run at now..is late not yet [sign up here](https://greyscope.xyz/x/kaisaridlv)
 
 ## 3. Installation & Run Kaisar Provider
 
 ### a. Clone Repository
 ```
-git clone https://github.com/arcxteam/kaisar-cli).git
+git clone https://github.com/arcxteam/kaisar-cli.git
 cd kaisar-cli
 ```
-### b. Run Install
+### b. Run Install & Follow Instructions
 ```
 chmod +x setup-provider.sh && sudo ./setup-provider.sh
 ```
